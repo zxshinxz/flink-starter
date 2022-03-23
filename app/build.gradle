@@ -6,7 +6,7 @@ plugins {
     id 'idea'
 }
 
-group = 'io.bigin'
+group = 'flink.starter'
 version = '0.0.1'
 description = 'bigin-message-job'
 
@@ -16,7 +16,7 @@ ext {
     scalaBinaryVersion = '2.11'
     lombokVersion = '1.18.20'
     junitVersion = '5.7.1'
-    javaMainClass = "io.bigin.stream.job.StreamJob"
+    javaMainClass = "flink.starter.job.StreamJob"
 }
 
 sourceCompatibility = javaVersion

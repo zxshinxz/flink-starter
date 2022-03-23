@@ -1,4 +1,4 @@
-package io.bigin.stream.job;
+package flink.starter.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.JobExecutionResult;
