@@ -13,14 +13,10 @@ description = 'bigin-message-job'
 ext {
     javaVersion = '1.8'
     flinkVersion = '1.14.4'
-    hadoopVersion = '2.4.1'
     scalaBinaryVersion = '2.11'
-    log4jVersion = '2.17.1'
     lombokVersion = '1.18.20'
     junitVersion = '5.7.1'
-    jooqVersion = '3.14.14'
     javaMainClass = "io.bigin.stream.job.StreamJob"
-    clickhouse_native_jdbc_version = "2.5.6"
 }
 
 sourceCompatibility = javaVersion
@@ -60,65 +56,13 @@ dependencies {
     // Compile-time dependencies that should NOT be part of the
     // shadow jar and are provided in the lib folder of Flink
     // --------------------------------------------------------------
-    shadow "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
-    shadow "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-    shadow "org.apache.logging.log4j:log4j-core:${log4jVersion}"
-
-
     implementation "com.typesafe:config:1.4.2"
 
-
     shadow "org.apache.flink:flink-runtime:${flinkVersion}"
-//    shadow "org.apache.flink:flink-runtime_${scalaBinaryVersion}:${flinkVersion}"
-
     shadow "org.apache.flink:flink-clients_${scalaBinaryVersion}:${flinkVersion}"
     shadow "org.apache.flink:flink-java:${flinkVersion}"
     shadow "org.apache.flink:flink-streaming-java_${scalaBinaryVersion}:${flinkVersion}"
     shadow "org.apache.flink:flink-streaming-scala_${scalaBinaryVersion}:${flinkVersion}"
-
-    implementation "com.github.housepower:clickhouse-native-jdbc:${clickhouse_native_jdbc_version}"
-
-    // --------------------------------------------------------------
-    // Dependencies that should be part of the shadow jar, e.g.
-    // connectors. These must be in the flinkShadowJar configuration!
-    // --------------------------------------------------------------
-
-    // shadow 필수!!
-    shadow "org.apache.hadoop:hadoop-common:${hadoopVersion}"
-    shadow "org.apache.hadoop:hadoop-hdfs:${hadoopVersion}"
-
-    implementation "org.apache.flink:flink-compress:${flinkVersion}"
-    implementation "org.apache.flink:flink-s3-fs-hadoop:${flinkVersion}"
-
-    implementation "org.apache.flink:flink-connector-files:${flinkVersion}"
-    implementation "org.apache.flink:flink-connector-kafka_${scalaBinaryVersion}:${flinkVersion}"
-    implementation "org.apache.flink:flink-connector-jdbc_${scalaBinaryVersion}:${flinkVersion}"
-
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.1"))
-    implementation("com.squareup.okhttp3:okhttp")
-    implementation("com.squareup.okhttp3:logging-interceptor")
-
-    implementation "com.jayway.jsonpath:json-path:2.6.0"
-
-//    implementation "com.fasterxml.jackson.core:jackson-databind:2.12.5"
-//    implementation "com.arangodb:arangodb-java-driver-async:5.1.0"
-    implementation "com.arangodb:arangodb-java-driver:6.12.3"
-
-    implementation "mysql:mysql-connector-java:8.0.22"
-    implementation "com.zaxxer:HikariCP:4.0.3"
-    implementation "org.springframework:spring-jdbc:5.3.9"
-
-    implementation "joda-time:joda-time:2.10.1"
-
-    implementation "org.jooq:jooq:${jooqVersion}"
-    implementation "org.jooq:jooq-meta:${jooqVersion}"
-    implementation "org.jooq:jooq-codegen:${jooqVersion}"
-
-
-    implementation 'com.aventrix.jnanoid:jnanoid:2.0.0'
-
-    implementation platform('software.amazon.awssdk:bom:2.15.0')
-    implementation 'software.amazon.awssdk:s3'
 
     // test
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
@@ -127,12 +71,8 @@ dependencies {
     testImplementation "org.junit.platform:junit-platform-engine:1.6.2"
     testImplementation 'org.assertj:assertj-core:3.20.2'
 
-//    testImplementation 'com.arangodb:arangodb-java-driver:5.0.7'
-
     testImplementation 'org.testcontainers:testcontainers:1.16.0'
     testImplementation 'org.testcontainers:junit-jupiter:1.16.0'
-    testImplementation 'org.testcontainers:kafka:1.16.0'
-    testImplementation 'org.apache.kafka:kafka-clients:2.7.1'
 
     testImplementation "org.apache.flink:flink-test-utils-junit:${flinkVersion}"
     testImplementation "org.apache.flink:flink-test-utils_${scalaBinaryVersion}:${flinkVersion}"
