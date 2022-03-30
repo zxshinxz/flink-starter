@@ -2,6 +2,7 @@ package flink.starter.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.JobExecutionResult;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 @Slf4j
@@ -18,12 +19,19 @@ public class StreamJob {
         job.execute();
     }
 
-    // TODO: need to implement this
     public JobExecutionResult execute() throws Exception {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(1);
 
-        env.fromElements("test")
-                .print();
+        // Source
+        DataStream<String> source = env.fromElements("test1", "test2")
+                .name("source-from-element")
+                .uid("source-from-element");
+
+        // Sink
+        source.print()
+                .name("sink-print-console")
+                .uid("sink-print-console");
 
         return env.execute("StreamJob");
     }
