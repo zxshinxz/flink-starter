@@ -36,8 +36,12 @@ public class StreamJobTest {
 
         source.addSink(new TestSink<>("result"));
         JobExecutionResult jobResult = env.execute();
+
         Map<String, Object> accumMap = jobResult.getAllAccumulatorResults();
         List<String> output = (List<String>) accumMap.get("result");
+
         assertThat(output.size()).isEqualTo(2);
+        assertThat(output.get(0)).isEqualTo("test1");
+        assertThat(output.get(1)).isEqualTo("test2");
     }
 }
