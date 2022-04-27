@@ -4,6 +4,9 @@ package flink.starter.job;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -16,20 +19,19 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 
 @Slf4j
-public class SessionCounter {
+public class HackathonSessionCount {
 
     private final String[] args;
 
-    public SessionCounter(String[] args) {
+    public HackathonSessionCount(String[] args) {
         this.args = args;
     }
 
     public static void main(String[] args) throws Exception {
-        SessionCounter job = new SessionCounter(args);
+        HackathonSessionCount job = new HackathonSessionCount(args);
         job.execute();
     }
 
@@ -39,37 +41,37 @@ public class SessionCounter {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        List<String> files = new ArrayList<>();
-        files.add("S9ETP3E0TF-5_2022_04_03.gz");
-        DataStream<String> eventString = env.addSource(new GzipSource(files));
+        /**
+         * SOURCE
+         */
+        KafkaSource<String> source = KafkaSource.<String>builder()
+                .setBootstrapServers("172.19.0.1:9092")
+                .setTopics("bigin-shop")
+                .setGroupId(UUID.randomUUID() + "")
+                .setProperty("enable.auto.commit", "true")
+                .setProperty("auto.commit.interval.ms", "5000")
+                .setBounded(OffsetsInitializer.latest()) // 이거 기억하기!!!
+                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .build();
 
-        DataStream<ObjectNode> eventObjectNode = eventString.map(event -> mapper.readValue(event, ObjectNode.class));
 
-//        DataStream<ObjectNode> eventObjectNodeWithWatermark = eventObjectNode.assignTimestampsAndWatermarks(new AssignerWithPeriodicWatermarks<ObjectNode>() {
-//            @Nullable
-//            @Override
-//            public Watermark getCurrentWatermark() {
-//                return new Watermark(0L);
-//            }
-//
-//            @Override
-//            public long extractTimestamp(ObjectNode element, long recordTimestamp) {
-//                return element.get("timestamp").asLong();
-//            }
-//        });
+        DataStream<ObjectNode> eventSource = env.fromSource(source, WatermarkStrategy.noWatermarks(),
+                        "KafkaSource")
+                .map(event -> mapper.readValue(event, ObjectNode.class));
 
-        DataStream<ObjectNode> eventObjectNodeWithWatermark = eventObjectNode.assignTimestampsAndWatermarks(WatermarkStrategy
-                .<ObjectNode>forBoundedOutOfOrderness(Duration.ofMinutes(2000000000))
+        DataStream<ObjectNode> streamWithTimestamp = eventSource.assignTimestampsAndWatermarks(WatermarkStrategy.<ObjectNode>forBoundedOutOfOrderness(Duration.ofMinutes(1000000))
                 .withTimestampAssigner((event, timestamp) -> event.get("timestamp").asLong()));
 
 
-        eventObjectNodeWithWatermark.keyBy(event -> event.get("device").asText())
-                .window(EventTimeSessionWindows.withGap(Time.minutes(5)))
+        streamWithTimestamp.keyBy(event -> event.get("device").asText())
+                .window(EventTimeSessionWindows.withGap(Time.minutes(10)))
                 .process(new ProcessWindowFunction<ObjectNode, Integer, String, TimeWindow>() {
                     @Override
                     public void process(String s, ProcessWindowFunction<ObjectNode, Integer, String, TimeWindow>.Context context, Iterable<ObjectNode> elements, Collector<Integer> out) throws Exception {
                         out.collect(1);
                     }
+
                 })
                 .addSink(new RichSinkFunction<Integer>() {
                     private int counter = 0;
@@ -86,6 +88,7 @@ public class SessionCounter {
                     }
                 });
 
-        return env.execute("StreamJob");
+
+        return env.execute("HackadayAnswer");
     }
 }

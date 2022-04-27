@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.JobExecutionResult;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 public class StreamJob {
 
@@ -22,7 +25,10 @@ public class StreamJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        env.addSource(new GzipSource("S9ETP3E0TF-5_2022_04_03.gz"))
+        List<String> files = new ArrayList<>();
+        files.add("S9ETP3E0TF-5_2022_04_03.gz");
+
+        env.addSource(new GzipSource(files))
                 .map(input -> 1)
                 .addSink(new CounterSink());
 

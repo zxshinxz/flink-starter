@@ -6,25 +6,30 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class GzipSource implements SourceFunction<String> {
-    private String path;
+    private List<String> files;
 
-    public GzipSource(String path) {
-        this.path = path;
+    public GzipSource(List<String> files) {
+        this.files = files;
     }
 
     @Override
     public void run(SourceContext<String> ctx) throws Exception {
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(this.path)), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                ctx.collect(line);
+        this.files.forEach(path -> {
+            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new GZIPInputStream(Files.newInputStream(Paths.get(path))), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    ctx.collect(line);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     @Override
